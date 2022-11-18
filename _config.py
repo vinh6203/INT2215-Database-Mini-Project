@@ -25,14 +25,6 @@ def openCharacterCreationWindow():
         master=CharacterCreationWindow,
         text="Character Creation"
     )
-    submitButton = Button(
-        CharacterCreationWindow,
-        text="Submit",
-        width=25,
-        height=5,
-        bg="cyan",
-        command=submitData
-    )
     nameLabel = Label(
         CharacterCreationWindow,
         text="Character Name",
@@ -50,6 +42,14 @@ def openCharacterCreationWindow():
     typeInput = Entry(
         CharacterCreationWindow,
         width=50
+    )
+    submitButton = Button(
+        CharacterCreationWindow,
+        text="Submit",
+        width=25,
+        height=5,
+        bg="cyan",
+        command=submitData
     )
     clearAll = Button(
         CharacterCreationWindow,
@@ -312,14 +312,6 @@ def openMapCreationWindow():
         master=MapCreationWindow,
         text="Map Creation"
     )
-    submitButton = Button(
-        MapCreationWindow,
-        text="Submit",
-        width=25,
-        height=5,
-        bg="cyan",
-        command=submitData
-    )
     nameLabel = Label(
         MapCreationWindow,
         text="Map Name",
@@ -355,6 +347,14 @@ def openMapCreationWindow():
     belongGameInput = Entry(
         MapCreationWindow,
         width=50
+    )
+    submitButton = Button(
+        MapCreationWindow,
+        text="Submit",
+        width=25,
+        height=5,
+        bg="cyan",
+        command=submitData
     )
     clearAll = Button(
         MapCreationWindow,
@@ -411,14 +411,6 @@ def openItemCreationWindow():
         master=ItemCreationWindow,
         text="Item Creation"
     )
-    submitButton = Button(
-        ItemCreationWindow,
-        text="Submit",
-        width=25,
-        height=5,
-        bg="cyan",
-        command=submitData
-    )
     nameLabel = Label(
         ItemCreationWindow,
         text="Item Name",
@@ -454,6 +446,14 @@ def openItemCreationWindow():
     belongMapInput = Entry(
         ItemCreationWindow,
         width=50
+    )
+    submitButton = Button(
+        ItemCreationWindow,
+        text="Submit",
+        width=25,
+        height=5,
+        bg="cyan",
+        command=submitData
     )
     clearAll = Button(
         ItemCreationWindow,
@@ -504,14 +504,6 @@ def openInsertCharacterGameWindow():
         master=insertCharacterGameWindow,
         text="Character Creation"
     )
-    submitButton = Button(
-        insertCharacterGameWindow,
-        text="Submit",
-        width=25,
-        height=5,
-        bg="cyan",
-        command=submitData
-    )
     championIdLabel = Label(
         insertCharacterGameWindow,
         text="Champion ID",
@@ -529,6 +521,14 @@ def openInsertCharacterGameWindow():
     gameIdInput = Entry(
         insertCharacterGameWindow,
         width=50
+    )
+    submitButton = Button(
+        insertCharacterGameWindow,
+        text="Submit",
+        width=25,
+        height=5,
+        bg="cyan",
+        command=submitData
     )
     clearAll = Button(
         insertCharacterGameWindow,
@@ -549,16 +549,92 @@ def openInsertCharacterGameWindow():
     insertCharacterGameWindow.mainloop()
 
 
+def openDisplayTableInput():
+    global databaseCursor
+    displayTableInputWindow = Tk()
+    displayTableInputWindow.title("Find Table")
+    def clearInput():
+        tableInput.delete(0, 'end')
+    def showTable():
+        displayTableWindow = Tk()
+        displayTableWindow.geometry("1300x1080")
+        displayTableWindow.title("Result")
+        tableName = (tableInput.get(),)
+        command = (
+            "DESCRIBE %s;" % (tableName)
+        )
+        try:
+            databaseCursor.execute(command)
+        except mysql.connector.errors.ProgrammingError as error:
+            return messagebox.showwarning("Warning", error)
+        
+        att = []
+        for i in [*databaseCursor]:
+            att.extend([i[0]])
+        for j in range(len(att)):
+            e=Label(displayTableWindow,width=30,text=att[j],borderwidth=2, relief='ridge',anchor='w',bg='yellow')
+            e.grid(row=0,column=j)
+
+        command = (
+            "SELECT * from %s;" % (tableName)
+        )
+        try:
+            databaseCursor.execute(command)
+        except mysql.connector.errors.ProgrammingError as error:
+            return messagebox.showwarning("Warning", error)
+        i = 1
+        for _publisher in databaseCursor:
+            for j in range(len(_publisher)):
+                e = Entry( displayTableWindow, width=35, fg='blue')
+                e.grid(row=i, column=j)
+                if _publisher[j] == None:
+                    e.insert('end', "NULL")
+                    continue
+                e.insert('end', _publisher[j])
+            i = i + 1
+        displayTableWindow.mainloop()
+
+    tableLabel = Label(
+        displayTableInputWindow,
+        text="Table Name",
+        font=('calibre', 10, 'bold')
+    )
+    tableInput = Entry(
+        displayTableInputWindow,
+        width=50
+    )
+    showTableButton = Button(
+        displayTableInputWindow,
+        text="Show Table",
+        width=25,
+        height=5,
+        bg="cyan",
+        command=showTable
+    )
+    clearAll = Button(
+        displayTableInputWindow,
+        text="Clear all",
+        width=25,
+        height=5,
+        bg="red",
+        command=clearInput
+    )
+    tableLabel.grid(row=0, column=0)
+    tableInput.grid(row=0, column=1)
+    showTableButton.grid(row=1, column=1)
+    clearAll.grid(row=2,column=1)
+    displayTableInputWindow.mainloop()
+
 #==========Main===================
 
 # Master window function
 def master():
     if not userCheck: #userCheck == False means not login yet!
         return
-
+        
     window = Tk()
     window.title("Main Window")
-    window.geometry("700x530")
+    window.geometry("700x630")
 
     title = Label(
         text="Game Management",
@@ -611,8 +687,16 @@ def master():
         bg="orchid",
         command=openInsertCharacterGameWindow
     )
-    #==== Pack site ====
+    displayPublisherButton = Button(
+        window,
+        text="Find Table",
+        width=25,
+        height=5,
+        bg="#33FFC1",
+        command=openDisplayTableInput
+    )
 
+    #==== Pack site ====
     title.pack()
     newGameButton.pack(fill=X)
     newMapButton.pack(fill=X)
@@ -620,6 +704,7 @@ def master():
     newWeaponButton.pack(fill=X)
     insertItem.pack(fill=X)
     insertCharacterInGameButton.pack(fill=X)
+    displayPublisherButton.pack(fill=X)
 
     #==== End of pack site ====
     window.mainloop()
